@@ -1,0 +1,74 @@
+[project]
+name = "irrexplorer-cli"
+version = "0.0.1"
+description = "A command-line interface to query and explore IRR & BGP data from IRRexplorer.net"
+readme = "README.md"
+authors = [{name = "kiraum", email = "tfgoncalves@xpto.it" }]
+dependencies = [
+    "httpx",
+    "rich",
+    "typer",
+    "pydantic",
+    "backoff",
+    "asyncio"
+]
+requires-python = ">=3.13"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "ruff",
+    "mypy",
+    "pytest-asyncio",
+    "respx",
+    "pytest-cov",
+    "isort",
+    "pylint",
+    "pre-commit"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+packages = ["irrexplorer_cli"]
+include = [
+    "irrexplorer_cli/py.typed",
+]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 120
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+[tool.black]
+line-length = 120
+
+[project.scripts]
+irrexplorer = "irrexplorer_cli.main:app"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.pylint]
+max-line-length = 120
+disable = []
+enable = "all"
+good-names = ["i", "j", "k", "ex", "Run", "_", "id", "f"]

@@ -1,0 +1,38 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install UV and build tools
+        run: |
+          pip install --upgrade uv
+          uv pip install --system --break-system-packages build
+
+      - name: Verify CHANGELOG
+        run: |
+          if ! grep -q "## \[$(git describe --tags --abbrev=0 | sed 's/v//')\]" CHANGELOG.md; then
+            echo "CHANGELOG.md not updated for this version"
+            exit 1
+          fi
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
