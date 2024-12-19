@@ -1,0 +1,30 @@
+name: Test (linter/formatter/coverage)
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.13"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade uv
+        uv pip sync --system --break-system-packages requirements.lock
+
+    - name: Install package
+      run: |
+        pip install -e .
+
+    - name: Run all linters and formatters
+      run: |
+        pre-commit run --all-files

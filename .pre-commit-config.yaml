@@ -1,0 +1,52 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: 'v5.0.0'
+  hooks:
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+    - id: check-toml
+    - id: check-added-large-files
+
+- repo: local
+  hooks:
+    - id: isort
+      name: isort
+      entry: isort
+      language: system
+      types: [python]
+
+    - id: black
+      name: black
+      entry: black
+      language: python
+      types_or: [python, pyi]
+
+    - id: ruff
+      name: ruff
+      entry: ruff check
+      language: python
+      types_or: [python, pyi]
+
+    - id: mypy
+      name: mypy
+      entry: mypy
+      language: python
+      types_or: [python, pyi]
+      require_serial: true
+
+    - id: pylint
+      name: pylint
+      entry: pylint
+      language: system
+      types: [python]
+      args:
+        - --rcfile=pyproject.toml
+
+    - id: pytest
+      name: pytest
+      entry: pytest
+      language: system
+      types: [python]
+      pass_filenames: false
+      args: ['--cov=irrexplorer_cli', '--cov-fail-under=100', 'tests/']
