@@ -21,32 +21,61 @@ class IrrExplorer:
     def __init__(self, base_url: str = "https://irrexplorer.nlnog.net") -> None:
         """Initialize IRR Explorer client with base URL."""
         self.base_url = base_url
-        self.client = httpx.AsyncClient()
+        self.timeout = httpx.Timeout(300.0)
+        self.client = httpx.AsyncClient(timeout=self.timeout)
+        self.console = Console()
 
-    @backoff.on_exception(backoff.expo, (httpx.HTTPError, httpx.RequestError), max_tries=3, max_time=30)
+    @backoff.on_exception(backoff.expo, (httpx.HTTPError, httpx.RequestError), max_tries=3, max_time=300)
     async def fetch_prefix_info(self, prefix: str) -> List[PrefixInfo]:
         """Fetch prefix information from IRR Explorer API."""
-        url = f"{self.base_url}/api/prefixes/prefix/{prefix}"
-        response = await self.client.get(url)
-        response.raise_for_status()
-        return [PrefixInfo(**item) for item in response.json()]
+        try:
+            url = f"{self.base_url}/api/prefixes/prefix/{prefix}"
+            response = await self.client.get(url)
+            response.raise_for_status()
+            data = response.json()
+            if not data:
+                return []
+            return [PrefixInfo(**item) for item in data]
+        except httpx.TimeoutException:
+            self.console.print(
+                f"[yellow]Request timed out while fetching info for {prefix}. The server might be busy.[/yellow]"
+            )
+            return []
 
-    @backoff.on_exception(backoff.expo, (httpx.HTTPError, httpx.RequestError), max_tries=3, max_time=30)
+    @backoff.on_exception(backoff.expo, (httpx.HTTPError, httpx.RequestError), max_tries=3, max_time=300)
     async def fetch_asn_info(self, asn: str) -> Dict[str, Any]:
         """Fetch prefix information for an AS number."""
-        url = f"https://irrexplorer.nlnog.net/api/prefixes/asn/{asn}"
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url)
-            response.raise_for_status()
-            return cast(Dict[str, Any], response.json())
+        try:
+            url = f"{self.base_url}/api/prefixes/asn/{asn}"
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                data = cast(Dict[str, Any], response.json())
+                if not data:
+                    return {"directOrigin": [], "overlaps": []}
+                return data
+        except httpx.TimeoutException:
+            self.console.print(
+                f"[yellow]Request timed out while fetching info for {asn}. The server might be busy.[/yellow]"
+            )
+            return {"directOrigin": [], "overlaps": []}
 
-    @backoff.on_exception(backoff.expo, (httpx.HTTPError, httpx.RequestError), max_tries=3, max_time=30)
+    @backoff.on_exception(backoff.expo, (httpx.HTTPError, httpx.RequestError), max_tries=3, max_time=300)
     async def fetch_asn_sets(self, asn: str) -> Dict[str, Any]:
         """Fetch AS sets information for an AS number."""
-        url = f"{self.base_url}/api/sets/member-of/{asn}"
-        response = await self.client.get(url)
-        response.raise_for_status()
-        return cast(Dict[str, Any], response.json())
+        try:
+            url = f"{self.base_url}/api/sets/member-of/{asn}"
+            response = await self.client.get(url)
+            response.raise_for_status()
+            data = cast(Dict[str, Any], response.json())
+            if not data:
+                return {"setsPerIrr": {}}
+            return data
+        except httpx.TimeoutException:
+            self.console.print(
+                f"[yellow]Request timed out while fetching AS sets for {asn}. The server might be busy.[/yellow]"
+            )
+            return {"setsPerIrr": {}}
 
     async def close(self) -> None:
         """Close the HTTP client connection."""
@@ -142,6 +171,10 @@ class IrrDisplay:
 
     async def display_prefix_info(self, direct_overlaps: List[PrefixInfo]) -> None:
         """Display prefix information in Rich panels."""
+        if not direct_overlaps:
+            self.console.print("[yellow]No prefix information found[/yellow]")
+            return
+
         await self.display_direct_overlaps(direct_overlaps)
         least_specific = await find_least_specific_prefix(direct_overlaps)
         if least_specific:
@@ -149,6 +182,10 @@ class IrrDisplay:
 
     async def display_direct_overlaps(self, direct_overlaps: List[PrefixInfo]) -> None:
         """Display directly overlapping prefixes."""
+        if not direct_overlaps:
+            self.console.print("[yellow]No prefix information found[/yellow]")
+            return
+
         direct_panels = await self.sort_and_group_panels(direct_overlaps)
         direct_columns = Columns(direct_panels, equal=True, expand=True)
         self.console.print(
@@ -191,40 +228,56 @@ class IrrDisplay:
         self, data: Dict[str, Any], asn: str, sets_data: Optional[Dict[str, Any]] = None
     ) -> None:
         """Display AS query results with rich formatting."""
+        if not data:
+            self.console.print(f"[yellow]No information found for AS{asn}[/yellow]")
+            return
+
         await self.display_direct_origins(data, asn)
         await self.display_overlaps(data, asn)
         self.display_as_sets(sets_data, asn)
 
     async def display_direct_origins(self, data: Dict[str, Any], asn: str) -> None:
         """Display direct origin prefixes."""
-        if data.get("directOrigin"):
+        if not data.get("directOrigin"):
+            return
+
+        try:
             direct_infos = [PrefixInfo(**prefix) for prefix in data["directOrigin"]]
-            direct_panels = await self.sort_and_group_panels(direct_infos)
-            direct_columns = Columns(direct_panels, equal=True, expand=True)
-            self.console.print(
-                Panel(
-                    direct_columns,
-                    title=f"[bold]Prefixes directly originated by {asn}[/bold]",
-                    expand=False,
-                )
+        except (ValueError, TypeError):
+            return
+
+        direct_panels = await self.sort_and_group_panels(direct_infos)
+        direct_columns = Columns(direct_panels, equal=True, expand=True)
+        self.console.print(
+            Panel(
+                direct_columns,
+                title=f"[bold]Prefixes directly originated by {asn}[/bold]",
+                expand=False,
             )
+        )
 
     async def display_overlaps(self, data: Dict[str, Any], asn: str) -> None:
         """Display overlapping prefixes."""
-        if data.get("overlaps"):
+        if not data.get("overlaps"):
+            return
+
+        try:
             overlap_infos = [PrefixInfo(**prefix) for prefix in data["overlaps"]]
-            overlap_panels = await self.sort_and_group_panels(overlap_infos)
-            if overlap_panels:
-                self.console.print("\n")
-                overlap_columns = Columns(overlap_panels, equal=True, expand=True)
-                self.console.print(
-                    Panel(
-                        overlap_columns,
-                        title=f"[bold]Overlapping prefixes related to {asn}[/bold]",
-                        expand=False,
-                    )
+        except (ValueError, TypeError):
+            return
+
+        overlap_panels = await self.sort_and_group_panels(overlap_infos)
+        if overlap_panels:
+            self.console.print("\n")
+            overlap_columns = Columns(overlap_panels, equal=True, expand=True)
+            self.console.print(
+                Panel(
+                    overlap_columns,
+                    title=f"[bold]Overlapping prefixes related to {asn}[/bold]",
+                    expand=False,
                 )
-                self.console.print("\n")
+            )
+            self.console.print("\n")
 
     def display_as_sets(self, sets_data: Optional[Dict[str, Any]], asn: str) -> None:
         """Display AS sets information."""

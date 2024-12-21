@@ -1,7 +1,7 @@
 """Test suite for IRR Explorer core functionality."""
 
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
 import pytest
@@ -197,3 +197,122 @@ def test_get_rpki_status() -> None:
     # Test with missing rpkiRoutes key
     prefix_missing_routes: dict[str, Any] = {}
     assert display.get_rpki_status(prefix_missing_routes) == "UNKNOWN"
+
+
+@pytest.mark.asyncio
+async def test_fetch_prefix_info_timeout() -> None:
+    """Test prefix info fetch with timeout."""
+    explorer = IrrExplorer()
+    with patch("httpx.AsyncClient.get", side_effect=httpx.TimeoutException("Timeout")):
+        result = await explorer.fetch_prefix_info("192.0.2.0/24")
+        assert result == []
+    await explorer.close()
+
+
+@pytest.mark.asyncio
+async def test_fetch_asn_info_timeout() -> None:
+    """Test ASN info fetch with timeout."""
+    explorer = IrrExplorer()
+    with patch("httpx.AsyncClient.get", side_effect=httpx.TimeoutException("Timeout")):
+        result = await explorer.fetch_asn_info("AS12345")
+        assert result == {"directOrigin": [], "overlaps": []}
+    await explorer.close()
+
+
+@pytest.mark.asyncio
+async def test_fetch_asn_sets_timeout() -> None:
+    """Test AS sets fetch with timeout."""
+    explorer = IrrExplorer()
+    with patch("httpx.AsyncClient.get", side_effect=httpx.TimeoutException("Timeout")):
+        result = await explorer.fetch_asn_sets("AS12345")
+        assert result == {"setsPerIrr": {}}
+    await explorer.close()
+
+
+@pytest.mark.asyncio
+async def test_display_prefix_info_empty() -> None:
+    """Test prefix info display with empty data."""
+    display = IrrDisplay()
+    await display.display_prefix_info([])
+
+
+@pytest.mark.asyncio
+async def test_display_direct_overlaps_empty() -> None:
+    """Test direct overlaps display with empty data."""
+    display = IrrDisplay()
+    await display.display_direct_overlaps([])
+
+
+@pytest.mark.asyncio
+async def test_display_asn_info_empty() -> None:
+    """Test ASN info display with empty data."""
+    display = IrrDisplay()
+    await display.display_asn_info({}, "AS12345", None)
+
+
+@pytest.mark.asyncio
+async def test_display_direct_origins_empty_data() -> None:
+    """Test direct origins display with empty data."""
+    display = IrrDisplay()
+    await display.display_direct_origins({"directOrigin": []}, "AS12345")
+
+
+@pytest.mark.asyncio
+async def test_display_overlaps_empty_data() -> None:
+    """Test overlaps display with empty data."""
+    display = IrrDisplay()
+    await display.display_overlaps({"overlaps": []}, "AS12345")
+
+
+@pytest.mark.asyncio
+async def test_fetch_prefix_info_empty_response() -> None:
+    """Test prefix info fetch with empty response."""
+    explorer = IrrExplorer()
+    mock_response = Mock()
+    mock_response.json.return_value = []
+    mock_response.raise_for_status = Mock()
+
+    async def mock_get(*_: Any) -> Mock:
+        return mock_response
+
+    with patch.object(explorer.client, "get", side_effect=mock_get):
+        result = await explorer.fetch_prefix_info("192.0.2.0/24")
+        assert result == []
+    await explorer.close()
+
+
+@pytest.mark.asyncio
+async def test_fetch_asn_sets_empty_response() -> None:
+    """Test AS sets fetch with empty response."""
+    explorer = IrrExplorer()
+    mock_response = Mock()
+    mock_response.json.return_value = None
+    mock_response.raise_for_status = Mock()
+
+    async def mock_get(*_: Any) -> Mock:
+        return mock_response
+
+    with patch.object(explorer.client, "get", side_effect=mock_get):
+        result = await explorer.fetch_asn_sets("AS12345")
+        assert result == {"setsPerIrr": {}}
+    await explorer.close()
+
+
+@pytest.mark.asyncio
+async def test_display_direct_origins_with_type_error() -> None:
+    """Test direct origins display when TypeError occurs."""
+    display = IrrDisplay()
+    data = {"directOrigin": [{"prefix": "192.0.2.0/24"}]}
+
+    with patch("irrexplorer_cli.irrexplorer.PrefixInfo", side_effect=TypeError):
+        await display.display_direct_origins(data, "AS12345")
+
+
+@pytest.mark.asyncio
+async def test_display_overlaps_with_type_error() -> None:
+    """Test overlaps display when TypeError occurs."""
+    display = IrrDisplay()
+    data = {"overlaps": [{"prefix": "192.0.2.0/24"}]}
+
+    with patch("irrexplorer_cli.irrexplorer.PrefixInfo", side_effect=TypeError):
+        await display.display_overlaps(data, "AS12345")

@@ -19,7 +19,7 @@ def test_prefix_info_model() -> None:
     )
 
     prefix_info = PrefixInfo.model_validate(data)
-    assert prefix_info.prefix == "192.0.2.0/24"  # Updated to match fixture
+    assert prefix_info.prefix == "192.0.2.0/24"
     assert prefix_info.rir == "RIPE NCC"
     assert prefix_info.bgpOrigins == [202196]
     assert prefix_info.categoryOverall == "warning"
