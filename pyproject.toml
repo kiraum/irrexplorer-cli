@@ -1,6 +1,6 @@
 [project]
 name = "irrexplorer-cli"
-version = "0.0.2"
+version = "0.0.3"
 description = "A command-line interface to query and explore IRR & BGP data from IRRexplorer.net"
 readme = "README.md"
 authors = [{name = "kiraum", email = "tfgoncalves@xpto.it" }]
