@@ -66,7 +66,7 @@ async def test_find_least_specific_prefix() -> None:
 def test_format_as_sets() -> None:
     """Test AS sets formatting."""
     sets_data = {"setsPerIrr": {"RIPE": ["AS-TEST1", "AS-TEST2"]}}
-    format_as_sets("AS12345", sets_data)  # Test output formatting
+    format_as_sets("AS12345", sets_data)
 
 
 def test_format_direct_origins_with_empty_results() -> None:
