@@ -22,8 +22,8 @@ pip install irrexplorer-cli
 
 ## Links
 
-GitHub Repository: https://github.com/kiraum/irrexplorer-cli
-PyPI Package: https://pypi.org/project/irrexplorer-cli
+* GitHub Repository: https://github.com/kiraum/irrexplorer-cli
+* PyPI Package: https://pypi.org/project/irrexplorer-cli
 
 ## Usage
 
