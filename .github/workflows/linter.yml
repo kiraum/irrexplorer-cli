@@ -2,6 +2,8 @@ name: Test (linter/formatter/coverage)
 
 on: [push]
 
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
