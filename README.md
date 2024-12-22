@@ -20,17 +20,24 @@ IRRexplorer CLI provides a simple way to access and analyze Internet Routing Reg
 pip install irrexplorer-cli
 ```
 
+## Links
+
+GitHub Repository: https://github.com/kiraum/irrexplorer-cli
+PyPI Package: https://pypi.org/project/irrexplorer-cli
+
 ## Usage
 
-Query Prefix Information
+Query Prefix (or IP) Information
 ```bash
-irrexplorer prefix 192.0.2.0/24
+irrexplorer prefix 200.160.4.153
 ```
+![](https://raw.githubusercontent.com/kiraum/irrexplorer-cli/refs/heads/main/docs/images/irrexplorer_prefix.png)
 
 Query ASN Information
 ```bash
-irrexplorer asn AS64496
+irrexplorer asn AS22548
 ```
+![](https://raw.githubusercontent.com/kiraum/irrexplorer-cli/refs/heads/main/docs/images/irrexplorer_asn.png)
 
 The `-f` or `--format` flag allows you to specify the output format:
 
@@ -83,8 +90,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-See [LICENSE](LICENSE) file for details.
+See [LICENSE](https://raw.githubusercontent.com/kiraum/irrexplorer-cli/refs/heads/main/LICENSE) file for details.
 
 ## Credits
 
-This tool interfaces with IRRexplorer v2, a project maintained by Stichting NLNOG and DashCare BV.
+This tool interfaces with [IRRexplorer v2](https://irrexplorer.nlnog.net/), a project maintained by Stichting NLNOG.
