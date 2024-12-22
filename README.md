@@ -1,5 +1,9 @@
 # IRRexplorer CLI
 
+[![Test (linter/formatter/coverage)](https://github.com/kiraum/irrexplorer-cli/actions/workflows/linter.yml/badge.svg)](https://github.com/kiraum/irrexplorer-cli/actions/workflows/linter.yml)
+[![Publish to PyPI](https://github.com/kiraum/irrexplorer-cli/actions/workflows/build_and_publish.yml/badge.svg)](https://github.com/kiraum/irrexplorer-cli/actions/workflows/build_and_publish.yml)
+[![codecov](https://codecov.io/github/kiraum/irrexplorer-cli/graph/badge.svg?token=J8A2Y85IUD)](https://codecov.io/github/kiraum/irrexplorer-cli)
+
 A command-line interface to query and explore IRR & BGP data from IRRexplorer.net in real-time.
 
 ## Overview
