@@ -49,6 +49,11 @@ The `-f` or `--format` flag allows you to specify the output format:
 * `csv`: Output results in CSV format
 * Default format is human-readable text
 
+The `-u` or `--url` flag allows you to specify a custom base URL for the IRR Explorer API:
+```bash
+irrexplorer --url https://custom-irrexplorer.example.com prefix 200.160.4.153
+```
+
 ## Requirements
 
 * Python 3.13+
