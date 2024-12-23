@@ -1,5 +1,6 @@
 """Core functionality for IRR Explorer CLI."""
 
+import logging
 from typing import Any, Dict, List, Optional, cast
 
 import backoff
@@ -13,6 +14,8 @@ from rich.text import Text
 from irrexplorer_cli.helpers import find_least_specific_prefix
 
 from .models import PrefixInfo
+
+logger = logging.getLogger(__name__)
 
 
 class IrrExplorer:
@@ -28,18 +31,17 @@ class IrrExplorer:
     @backoff.on_exception(backoff.expo, (httpx.HTTPError, httpx.RequestError), max_tries=3, max_time=300)
     async def fetch_prefix_info(self, prefix: str) -> List[PrefixInfo]:
         """Fetch prefix information from IRR Explorer API."""
+        logger.debug("Fetching prefix info for: %s", prefix)
         try:
             url = f"{self.base_url}/api/prefixes/prefix/{prefix}"
+            logger.debug("Making API request to: %s", url)
             response = await self.client.get(url)
             response.raise_for_status()
             data = response.json()
-            if not data:
-                return []
+            logger.debug("Received response data: %s", data)
             return [PrefixInfo(**item) for item in data]
         except httpx.TimeoutException:
-            self.console.print(
-                f"[yellow]Request timed out while fetching info for {prefix}. The server might be busy.[/yellow]"
-            )
+            logger.error("Request timeout for prefix: %s", prefix)
             return []
 
     @backoff.on_exception(backoff.expo, (httpx.HTTPError, httpx.RequestError), max_tries=3, max_time=300)
@@ -171,7 +173,9 @@ class IrrDisplay:
 
     async def display_prefix_info(self, direct_overlaps: List[PrefixInfo]) -> None:
         """Display prefix information in Rich panels."""
+        logger.debug("Displaying prefix info for %d overlaps", len(direct_overlaps))
         if not direct_overlaps:
+            logger.debug("No prefix information found")
             self.console.print("[yellow]No prefix information found[/yellow]")
             return
 

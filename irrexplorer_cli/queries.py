@@ -1,6 +1,7 @@
 """Query functions for the CLI tool."""
 
 import json
+import logging
 from typing import Optional
 
 import httpx
@@ -15,6 +16,8 @@ from irrexplorer_cli.helpers import (
 )
 from irrexplorer_cli.irrexplorer import IrrDisplay, IrrExplorer
 
+logger = logging.getLogger(__name__)
+
 
 async def process_overlaps(explorer: IrrExplorer, least_specific: str) -> None:
     """Process and print overlapping prefixes."""
@@ -28,12 +31,17 @@ async def process_overlaps(explorer: IrrExplorer, least_specific: str) -> None:
 
 async def async_prefix_query(pfx: str, output_format: Optional[str] = None, base_url: Optional[str] = None) -> None:
     """Execute asynchronous prefix query and display results."""
+    logger.debug("Starting prefix query for: %s", pfx)
+    logger.debug("Output format: %s, Base URL: %s", output_format, base_url)
     explorer = IrrExplorer(base_url=base_url) if base_url else IrrExplorer()
     display = IrrDisplay()
 
     try:
         direct_overlaps = await explorer.fetch_prefix_info(pfx)
+        logger.debug("Received %d direct overlaps", len(direct_overlaps))
+
         if output_format == "json":
+            logger.debug("Formatting output as JSON")
             json_data = [result.model_dump() for result in direct_overlaps]
             print(json.dumps(json_data, indent=2))
         elif output_format == "csv":

@@ -1,6 +1,7 @@
 """Command-line interface for IRR Explorer queries."""
 
 import asyncio
+import logging
 from importlib.metadata import version
 from typing import Optional
 
@@ -19,6 +20,17 @@ app = typer.Typer(
     context_settings={"help_option_names": ["-h", "--help"]},
 )
 console = Console()
+logger = logging.getLogger(__name__)
+
+
+def setup_logging(debug: bool) -> None:
+    """Configure logging based on debug flag."""
+    log_level = logging.DEBUG if debug else logging.INFO
+    logging.basicConfig(level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+    # set httpx logger level based on debug flag
+    httpx_logger = logging.getLogger("httpx")
+    httpx_logger.setLevel(logging.DEBUG if debug else logging.WARNING)
 
 
 def version_display(display_version: bool) -> None:
@@ -33,10 +45,13 @@ def callback(
     ctx: typer.Context,
     _: bool = typer.Option(None, "--version", "-v", callback=version_display, is_eager=True),
     base_url: Optional[str] = typer.Option(None, "--url", "-u", help="Base URL for IRR Explorer API"),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug logging"),
 ) -> None:
     """Query IRR Explorer for prefix information."""
     ctx.ensure_object(dict)
     ctx.obj["base_url"] = base_url
+    setup_logging(debug)
+    logger.debug("CLI initialized with base_url: %s", base_url)
 
 
 @app.command(no_args_is_help=True)
