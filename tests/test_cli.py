@@ -108,4 +108,4 @@ def test_asn_query_command() -> None:
     with patch("irrexplorer_cli.main.async_asn_query", return_value=None) as mock_query:
         result = runner.invoke(app, ["asn", "AS202196"])
         assert not result.exit_code
-        mock_query.assert_called_once_with("AS202196", None)
+        mock_query.assert_called_once_with("AS202196", None, None)

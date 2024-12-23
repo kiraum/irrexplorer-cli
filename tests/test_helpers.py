@@ -12,6 +12,7 @@ from irrexplorer_cli.helpers import (
     format_prefix_result,
     validate_asn_format,
     validate_prefix_format,
+    validate_url_format,
 )
 from tests.fixtures import (
     COMMON_ASN_DATA,
@@ -142,3 +143,18 @@ def test_format_as_sets_empty() -> None:
 def test_format_direct_origins_with_rpki_routes() -> None:
     """Test direct origins formatting with RPKI routes."""
     format_direct_origins("AS12345", COMMON_ASN_DATA)
+
+
+def test_validate_url_format() -> None:
+    """Test URL format validation."""
+    # Valid URLs
+    assert validate_url_format("https://example.com") is True
+    assert validate_url_format("http://sub.example.com/path") is True
+    assert validate_url_format("https://example.com/path?query=value") is True
+    assert validate_url_format("https://api.example.co.uk/v1") is True
+
+    # Invalid URLs
+    assert validate_url_format("example.com") is False
+    assert validate_url_format("http://invalid") is False
+    assert validate_url_format("https://example.com space") is False
+    assert validate_url_format("") is False
