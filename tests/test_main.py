@@ -1,10 +1,10 @@
 """Test cases for main module."""
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import typer
-from click.core import Command, Context
+from click.core import Command
 from typer.testing import CliRunner
 
 from irrexplorer_cli.main import app, asn, prefix
@@ -69,10 +69,36 @@ def test_asn_command_without_context() -> None:
 def test_prefix_direct_no_args() -> None:
     """Test prefix function directly with no arguments."""
     with pytest.raises(typer.Exit):
-        prefix("", "", Context(Command("test")))
+        ctx = typer.Context(Command("test"))
+        ctx.obj = {"base_url": "http://example.com"}
+        prefix(ctx)
 
 
 def test_asn_direct_no_args() -> None:
     """Test asn function directly with no arguments."""
     with pytest.raises(typer.Exit):
-        asn("", "", Context(Command("test")))
+        ctx = typer.Context(Command("test"))
+        ctx.obj = {"base_url": "http://example.com"}
+        asn(ctx)
+
+
+@patch("irrexplorer_cli.main.validate_url_format")
+def test_prefix_invalid_url_format(mock_validate_url: MagicMock) -> None:
+    """Test prefix command with invalid URL format."""
+    mock_validate_url.return_value = False
+    ctx = typer.Context(Command("test"))
+    ctx.obj = {"base_url": "http://example.com"}
+    with pytest.raises(typer.Exit) as exc_info:
+        prefix(ctx, "192.0.2.0/24")
+    assert exc_info.value.exit_code == 1
+
+
+@patch("irrexplorer_cli.main.validate_url_format")
+def test_asn_invalid_url_format(mock_validate_url: MagicMock) -> None:
+    """Test ASN command with invalid URL format."""
+    mock_validate_url.return_value = False
+    ctx = typer.Context(Command("test"))
+    ctx.obj = {"base_url": "http://example.com"}
+    with pytest.raises(typer.Exit) as exc_info:
+        asn(ctx, "AS12345")
+    assert exc_info.value.exit_code == 1

@@ -6,9 +6,10 @@ from unittest.mock import patch
 
 import httpx
 import pytest
+import typer
 
 from irrexplorer_cli.irrexplorer import IrrExplorer
-from irrexplorer_cli.queries import async_asn_query, process_overlaps
+from irrexplorer_cli.queries import async_asn_query, async_prefix_query, process_overlaps
 
 
 @pytest.mark.asyncio
@@ -48,3 +49,37 @@ async def test_process_overlaps_error_handling() -> None:
     with patch("irrexplorer_cli.irrexplorer.IrrExplorer.fetch_prefix_info", side_effect=httpx.HTTPError("Test error")):
         await process_overlaps(explorer, "192.0.2.0/24")
     await explorer.close()
+
+
+@pytest.mark.asyncio
+async def test_asn_query_connection_error() -> None:
+    """Test ASN query with connection error."""
+    with (
+        patch("irrexplorer_cli.irrexplorer.IrrExplorer.fetch_asn_info", side_effect=httpx.ConnectError("Test error")),
+        patch("builtins.print") as mock_print,
+        pytest.raises(typer.Exit) as exc_info,
+    ):
+        await async_asn_query("AS12345", base_url="https://example.com")
+        mock_print.assert_called_with(
+            "Error: Unable to connect to https://example.com. "
+            "Please verify the URL is correct and the service is available."
+        )
+        assert exc_info.value.exit_code == 1
+
+
+@pytest.mark.asyncio
+async def test_prefix_query_connection_error() -> None:
+    """Test prefix query with connection error."""
+    with (
+        patch(
+            "irrexplorer_cli.irrexplorer.IrrExplorer.fetch_prefix_info", side_effect=httpx.ConnectError("Test error")
+        ),
+        patch("builtins.print") as mock_print,
+        pytest.raises(typer.Exit) as exc_info,
+    ):
+        await async_prefix_query("192.0.2.0/24", base_url="https://example.com")
+        mock_print.assert_called_with(
+            "Error: Unable to connect to https://example.com. "
+            "Please verify the URL is correct and the service is available."
+        )
+        assert exc_info.value.exit_code == 1

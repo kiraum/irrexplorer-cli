@@ -18,12 +18,14 @@ def validate_prefix_format(prefix_input: str) -> bool:
 
 def validate_asn_format(asn_input: str) -> bool:
     """Validate ASN format."""
+    if not isinstance(asn_input, str):
+        return False
     asn_pattern = r"^(?:AS|as)?(\d+)$"
     match = re.match(asn_pattern, asn_input)
-    if match:
-        asn_number = int(match.group(1))
-        return 0 <= asn_number <= 4294967295
-    return False
+    if not match:
+        return False
+    asn_number = int(match.group(1))
+    return 0 <= asn_number <= 4294967295
 
 
 def format_prefix_result(result: PrefixInfo, prefix_type: str) -> str:
@@ -121,3 +123,9 @@ async def find_least_specific_prefix(direct_overlaps: List[PrefixInfo]) -> str |
             if least_specific is None or int(mask) < int(least_specific.split("/")[1]):
                 least_specific = info.prefix
     return least_specific
+
+
+def validate_url_format(url: str) -> bool:
+    """Validate URL format."""
+    url_pattern = r"^https?://[a-zA-Z0-9.-]+(?:\.[a-zA-Z]{2,})+(?:/[^\s]*)?$"
+    return bool(re.match(url_pattern, url))
