@@ -43,15 +43,21 @@ irrexplorer asn AS22548
 ```
 ![](https://raw.githubusercontent.com/kiraum/irrexplorer-cli/refs/heads/main/docs/images/irrexplorer_asn.png)
 
-The `-f` or `--format` flag allows you to specify the output format:
+The following flags customize the output:
 
-* `json`: Output results in JSON format
-* `csv`: Output results in CSV format
-* Default format is human-readable text
+* `-f` or `--format`: Specify output format
+  * `json`: Output results in JSON format
+  * `csv`: Output results in CSV format
+  * Default format is human-readable text
 
-The `-u` or `--url` flag allows you to specify a custom base URL for the IRR Explorer API:
+* `-u` or `--url`: Specify a custom base URL for the IRR Explorer API
 ```bash
 irrexplorer --url https://custom-irrexplorer.example.com prefix 200.160.4.153
+```
+
+* `-d` or `--debug`: Enable debug logging for troubleshooting
+```bash
+irrexplorer --debug prefix 200.160.4.153
 ```
 
 ## Requirements
