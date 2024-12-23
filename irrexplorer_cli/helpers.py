@@ -1,18 +1,24 @@
 """Helper functions for the CLI."""
 
 import ipaddress
+import logging
 import re
 from typing import Any, Dict, List
 
 from irrexplorer_cli.models import PrefixInfo, PrefixResult
 
+logger = logging.getLogger(__name__)
+
 
 def validate_prefix_format(prefix_input: str) -> bool:
     """Validate IPv4 or IPv6 prefix format."""
+    logger.debug("Validating prefix format: %s", prefix_input)
     try:
         ipaddress.ip_network(prefix_input)
+        logger.debug("Prefix validation successful")
         return True
     except ValueError:
+        logger.debug("Invalid prefix format")
         return False
 
 
@@ -116,12 +122,14 @@ def format_as_sets(as_number: str, sets_data: Dict[str, Dict[str, List[str]]]) -
 
 async def find_least_specific_prefix(direct_overlaps: List[PrefixInfo]) -> str | None:
     """Find the least specific prefix from the overlaps."""
+    logger.debug("Finding least specific prefix from %d overlaps", len(direct_overlaps))
     least_specific = None
     for info in direct_overlaps:
         if "/" in info.prefix:
             _, mask = info.prefix.split("/")
             if least_specific is None or int(mask) < int(least_specific.split("/")[1]):
                 least_specific = info.prefix
+                logger.debug("New least specific prefix found: %s", least_specific)
     return least_specific
 
 
