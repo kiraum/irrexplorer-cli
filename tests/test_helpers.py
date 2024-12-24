@@ -42,10 +42,18 @@ def test_validate_asn_format() -> None:
 
 def test_format_prefix_result() -> None:
     """Test prefix result formatting."""
-    prefix_info = create_basic_prefix_info(
-        messages=[{"category": "info", "text": "Test message"}], irrRoutes={"RIPE": []}
+    # Test with empty rpkiRoutes
+    prefix_info_empty = create_basic_prefix_info(
+        messages=[{"category": "info", "text": "Test message"}], irrRoutes={"RIPE": []}, rpkiRoutes=[]
     )
+    result_empty = format_prefix_result(prefix_info_empty, "DIRECT")
+    assert isinstance(result_empty, str)
+    assert "NOT_FOUND" in result_empty
 
+    # Test with rpkiRoutes
+    prefix_info = create_basic_prefix_info(
+        messages=[{"category": "info", "text": "Test message"}], irrRoutes={"RIPE": []}, rpkiRoutes=[COMMON_RPKI_ROUTE]
+    )
     result = format_prefix_result(prefix_info, "DIRECT")
     assert isinstance(result, str)
     assert "192.0.2.0/24" in result
@@ -59,6 +67,7 @@ async def test_find_least_specific_prefix() -> None:
         create_basic_prefix_info(prefix="192.0.2.0/24"),
         create_basic_prefix_info(prefix="192.0.2.0/23"),
         create_basic_prefix_info(prefix="192.0.2.0/25"),
+        create_basic_prefix_info(prefix="invalid_prefix"),
     ]
     result = await find_least_specific_prefix(overlaps)
     assert result == "192.0.2.0/23"
@@ -78,10 +87,12 @@ def test_format_direct_origins_with_empty_results() -> None:
 
 def test_format_overlapping_prefixes_with_complex_data() -> None:
     """Test overlapping prefixes with multiple IRR routes."""
+    # Test case 1: With RPKI routes
     complex_prefix_info = COMMON_PREFIX_INFO.copy()
     complex_prefix_info.update(
         {
             "bgpOrigins": [12345, 67890],
+            "rpkiRoutes": [COMMON_RPKI_ROUTE],  # Add RPKI route
             "irrRoutes": {"RIPE": [COMMON_RPKI_ROUTE]},
             "messages": [
                 {"category": "info", "text": "Test message 1"},
@@ -89,10 +100,21 @@ def test_format_overlapping_prefixes_with_complex_data() -> None:
             ],
         }
     )
-
     complex_data = {"overlaps": [complex_prefix_info]}
-
     format_overlapping_prefixes("AS12345", complex_data)
+
+    # Test case 2: Without RPKI routes
+    no_rpki_prefix_info = COMMON_PREFIX_INFO.copy()
+    no_rpki_prefix_info.update(
+        {
+            "bgpOrigins": [12345, 67890],
+            "rpkiRoutes": [],  # Empty RPKI routes
+            "irrRoutes": {"RIPE": [COMMON_RPKI_ROUTE]},
+            "messages": [{"category": "info", "text": "Test message"}],
+        }
+    )
+    no_rpki_data = {"overlaps": [no_rpki_prefix_info]}
+    format_overlapping_prefixes("AS12345", no_rpki_data)
 
 
 @pytest.mark.asyncio

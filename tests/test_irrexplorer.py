@@ -25,8 +25,27 @@ async def test_fetch_prefix_info() -> None:
 async def test_display_prefix_info() -> None:
     """Test prefix information display formatting."""
     display = IrrDisplay()
+
+    # Test case 1: Basic prefix info
     test_data = [create_basic_prefix_info(prefix="5.57.21.0/24", rpkiRoutes=[])]
     await display.display_prefix_info(test_data)
+
+    # Test case 2: Multiple prefixes with different masks
+    test_data_multiple = [
+        create_basic_prefix_info(prefix="192.0.2.0/24", rpkiRoutes=[]),
+        create_basic_prefix_info(prefix="192.0.2.0/23", rpkiRoutes=[]),
+        create_basic_prefix_info(prefix="192.0.2.0/25", rpkiRoutes=[]),
+    ]
+    await display.display_prefix_info(test_data_multiple)
+
+    # Test case 3: Empty prefix list
+    await display.display_prefix_info([])
+
+    # Test case 4: Single invalid prefix
+    with patch("irrexplorer_cli.irrexplorer.IrrDisplay.sort_and_group_panels") as mock_sort:
+        mock_sort.return_value = []
+        test_data_invalid = [create_basic_prefix_info(prefix="invalid_format", rpkiRoutes=[])]
+        await display.display_prefix_info(test_data_invalid)
 
 
 @pytest.mark.asyncio
@@ -87,13 +106,15 @@ async def test_display_overlaps() -> None:
     """Test overlaps display functionality."""
     display = IrrDisplay()
 
-    # Create data using the fixture but override specific fields
+    # Test case 1: Normal overlaps
     overlap_info = COMMON_PREFIX_INFO.copy()
     overlap_info.update({"categoryOverall": "warning", "rpkiRoutes": [], "irrRoutes": {"RIPE": []}})
-
     data = {"overlaps": [overlap_info]}
-
     await display.display_overlaps(data, "AS12345")
+
+    # Test case 2: Empty panels after sorting
+    with patch("irrexplorer_cli.irrexplorer.IrrDisplay.sort_and_group_panels", return_value=[]):
+        await display.display_overlaps(data, "AS12345")
 
 
 @pytest.mark.asyncio
@@ -316,3 +337,20 @@ async def test_display_overlaps_with_type_error() -> None:
 
     with patch("irrexplorer_cli.irrexplorer.PrefixInfo", side_effect=TypeError):
         await display.display_overlaps(data, "AS12345")
+
+
+def test_display_as_sets_edge_cases() -> None:
+    """Test AS sets display with various edge cases."""
+    display = IrrDisplay()
+
+    # Test with None
+    display.display_as_sets(None, "AS12345")
+
+    # Test with empty dict
+    display.display_as_sets({}, "AS12345")
+
+    # Test with dict missing setsPerIrr
+    display.display_as_sets({"other_key": "value"}, "AS12345")
+
+    # Test with empty setsPerIrr
+    display.display_as_sets({"setsPerIrr": {}}, "AS12345")

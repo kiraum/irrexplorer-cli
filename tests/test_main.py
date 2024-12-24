@@ -27,9 +27,24 @@ def test_exit_with_help() -> None:
 
 def test_prefix_command_without_context() -> None:
     """Test prefix command without context."""
-    with patch("typer.Context", return_value=None):
-        result = runner.invoke(app, ["prefix", ""])
-        assert not result.exit_code
+    # Test with empty prefix and context
+    result = runner.invoke(app, ["prefix", ""])
+    assert not result.exit_code
+    assert "Usage" in result.stdout
+
+    # Test branch where prefix_query is empty with ctx
+    mock_ctx = MagicMock()
+    mock_ctx.get_help.return_value = "Help text"
+    mock_ctx.obj = {}
+    with pytest.raises(typer.Exit):
+        prefix(mock_ctx, "")
+
+    # Test branch where prefix_query is empty without ctx
+    mock_ctx = MagicMock()
+    mock_ctx.__bool__.return_value = False
+    mock_ctx.obj = {}
+    with pytest.raises(typer.Exit):
+        prefix(mock_ctx, "")
 
 
 def test_invalid_asn_format() -> None:
@@ -61,9 +76,24 @@ def test_asn_command_with_context() -> None:
 
 def test_asn_command_without_context() -> None:
     """Test ASN command without context."""
-    with patch("typer.Context", return_value=None):
-        result = runner.invoke(app, ["asn", ""])
-        assert not result.exit_code
+    # Test with empty ASN and context
+    result = runner.invoke(app, ["asn", ""])
+    assert not result.exit_code
+    assert "Usage" in result.stdout
+
+    # Test branch where asn_query is empty with ctx
+    mock_ctx = MagicMock()
+    mock_ctx.get_help.return_value = "Help text"
+    mock_ctx.obj = {}
+    with pytest.raises(typer.Exit):
+        asn(mock_ctx, "")
+
+    # Test branch where asn_query is empty without ctx
+    mock_ctx = MagicMock()
+    mock_ctx.__bool__.return_value = False
+    mock_ctx.obj = {}
+    with pytest.raises(typer.Exit):
+        asn(mock_ctx, "")
 
 
 def test_prefix_direct_no_args() -> None:
