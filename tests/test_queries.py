@@ -10,6 +10,7 @@ import typer
 
 from irrexplorer_cli.irrexplorer import IrrExplorer
 from irrexplorer_cli.queries import async_asn_query, async_prefix_query, process_overlaps
+from tests.fixtures import create_basic_prefix_info
 
 
 @pytest.mark.asyncio
@@ -83,3 +84,19 @@ async def test_prefix_query_connection_error() -> None:
             "Please verify the URL is correct and the service is available."
         )
         assert exc_info.value.exit_code == 1
+
+
+@pytest.mark.asyncio
+async def test_prefix_query_csv_overlaps_path() -> None:
+    """Test prefix query CSV output with overlaps."""
+    mock_overlaps = [create_basic_prefix_info(prefix="192.0.2.0/24")]
+    mock_overlap_results = [create_basic_prefix_info(prefix="192.0.2.0/23")]
+
+    explorer = IrrExplorer()
+
+    with (
+        patch.object(explorer, "fetch_prefix_info", side_effect=[mock_overlaps, mock_overlap_results]),
+        patch("irrexplorer_cli.helpers.find_least_specific_prefix", return_value="192.0.2.0/24"),
+        patch("builtins.print"),
+    ):
+        await async_prefix_query("192.0.2.0/24", output_format="csv", base_url=None)

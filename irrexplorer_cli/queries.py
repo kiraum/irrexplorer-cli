@@ -33,6 +33,7 @@ async def async_prefix_query(pfx: str, output_format: Optional[str] = None, base
     """Execute asynchronous prefix query and display results."""
     logger.debug("Starting prefix query for: %s", pfx)
     logger.debug("Output format: %s, Base URL: %s", output_format, base_url)
+
     explorer = IrrExplorer(base_url=base_url) if base_url else IrrExplorer()
     display = IrrDisplay()
 
@@ -44,15 +45,19 @@ async def async_prefix_query(pfx: str, output_format: Optional[str] = None, base
             logger.debug("Formatting output as JSON")
             json_data = [result.model_dump() for result in direct_overlaps]
             print(json.dumps(json_data, indent=2))
-        elif output_format == "csv":
+            return
+
+        if output_format == "csv":
             print("Type,Prefix,Category,RIR,RPKI_Status,BGP_Origins,IRR_Routes,Messages")
             for result in direct_overlaps:
                 print(format_prefix_result(result, "DIRECT"))
             least_specific = await find_least_specific_prefix(direct_overlaps)
             if least_specific:
                 await process_overlaps(explorer, least_specific)
-        else:
-            await display.display_prefix_info(direct_overlaps)
+            return
+
+        await display.display_prefix_info(direct_overlaps)
+
     except httpx.ConnectError as exc:
         print(
             f"Error: Unable to connect to {base_url or 'default IRR Explorer instance'}. "

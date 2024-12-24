@@ -49,4 +49,4 @@ repos:
       language: system
       types: [python]
       pass_filenames: false
-      args: ['--cov=irrexplorer_cli', '--cov-fail-under=100', 'tests/']
+      args: ['--cov=irrexplorer_cli', '--cov-branch', '--cov-fail-under=100', 'tests/']
