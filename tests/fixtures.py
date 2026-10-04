@@ -1,10 +1,9 @@
-""" Fixtures for tests """
+"""Fixtures for tests"""
 
 from typing import Any
 
 from irrexplorer_cli.models import PrefixInfo
 
-COMMON_SETS_DATA = {"setsPerIrr": {"RIPE": ["AS-TEST"], "ARIN": ["AS-TEST2"]}}
 COMMON_RPKI_ROUTE = {
     "rpkiStatus": "VALID",
     "rpkiMaxLength": 24,
@@ -21,7 +20,8 @@ COMMON_PREFIX_INFO = {
     "bgpOrigins": [12345],
     "irrRoutes": {},
     "messages": [],
-    "prefixSortKey": "1",
+    "prefixSortKeyIpPrefix": "3221225984/24",
+    "prefixSortKeyReverseNetworklenIp": "104-3221225984",
     "goodnessOverall": 1,
 }
 

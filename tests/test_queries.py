@@ -1,4 +1,4 @@
-""" Tests for the queries module. """
+"""Tests for the queries module."""
 
 import json
 from typing import Any, Dict, List

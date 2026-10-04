@@ -4,6 +4,18 @@ All notable changes to irrexplorer-cli will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.5] - 2026-10-04
+### Fixed
+- Prefix and ASN queries failing since the IRR Explorer API replaced `prefixSortKey` with `prefixSortKeyIpPrefix` and `prefixSortKeyReverseNetworklenIp`
+
+### Changed
+- JSON output of prefix queries carries the two new sort keys in place of `prefixSortKey`
+- Running `irrexplorer`, `irrexplorer prefix` or `irrexplorer asn` without arguments still prints the help, but exits with code 2 instead of 0
+- Dependencies in `requirements.lock` refreshed to their latest versions
+
+[0.0.5 ⋅ Release]: https://github.com/kiraum/irrexplorer-cli/releases/tag/v0.0.5
+[0.0.5 ⋅ Diff]: https://github.com/kiraum/irrexplorer-cli/compare/v0.0.4...v0.0.5
+
 ## [0.0.4] - 2024-12-23
 ### Added
 - Debug logging option with -d/--debug flag
