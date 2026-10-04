@@ -35,7 +35,7 @@ async def test_explorer_close_error() -> None:
 def test_callback_without_version() -> None:
     """Test callback execution without version flag."""
     result = runner.invoke(app)
-    assert not result.exit_code
+    assert result.exit_code == 2
 
 
 def test_query_empty_prefix() -> None:
@@ -94,7 +94,7 @@ def test_help_command() -> None:
 def test_query_without_prefix() -> None:
     """Test query command without prefix argument."""
     result = runner.invoke(app, ["query"])
-    assert "Usage" in result.stdout
+    assert "Usage" in result.output
 
 
 def test_format_option() -> None:

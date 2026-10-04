@@ -43,7 +43,8 @@ class PrefixInfo(BaseModel):
     irrRoutes: Dict[str, List[IrrRoute]]
     categoryOverall: str
     messages: List[Message]
-    prefixSortKey: str
+    prefixSortKeyIpPrefix: str
+    prefixSortKeyReverseNetworklenIp: str
     goodnessOverall: int
 
     def __init__(self, **data: Any) -> None:
