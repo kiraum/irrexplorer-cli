@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSON output of prefix queries carries the two new sort keys in place of `prefixSortKey`
 - Running `irrexplorer`, `irrexplorer prefix` or `irrexplorer asn` without arguments still prints the help, but exits with code 2 instead of 0
 - Dependencies in `requirements.lock` refreshed to their latest versions
+- PyPI publish action updated to v1.14.2, which accepts the packaging metadata 2.5 the build now produces
 
 [0.0.5 ⋅ Release]: https://github.com/kiraum/irrexplorer-cli/releases/tag/v0.0.5
 [0.0.5 ⋅ Diff]: https://github.com/kiraum/irrexplorer-cli/compare/v0.0.4...v0.0.5
